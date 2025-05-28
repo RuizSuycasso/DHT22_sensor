@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Drone Arm Control</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { font-size: 16px; padding: 8px; margin: 5px 0; }
+    #status { margin-top: 15px; font-weight: bold; }
+    #armBtn { 
+      background-color: #4CAF50; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      transition: background-color 0.3s;
+    }
+    #armBtn.disarm {
+      background-color: #f44336;
+    }
+    #armBtn:hover { 
+      opacity: 0.9; 
+    }
+  </style>
+</head>
+<body>
+  <h1>Điều khiển Drone - ARM/DISARM</h1>
+  <label for="ip">Nhập địa chỉ IP ESP32:</label><br />
+  <input type="text" id="ip" placeholder="192.168.x.x" /><br />
+  <button id="armBtn">ARM</button>
+
+  <div id="status"></div>
+
+  <script>
+    const armBtn = document.getElementById('armBtn');
+    const statusDiv = document.getElementById('status');
+    let isArmed = false;
+
+    armBtn.addEventListener('click', () => {
+      const ip = document.getElementById('ip').value.trim();
+      if (!ip) {
+        statusDiv.textContent = 'Vui lòng nhập địa chỉ IP.';
+        statusDiv.style.color = 'red';
+        return;
+      }
+
+      const url = `http://${ip}/toggle`;  // endpoint toggle trên ESP32
+
+      statusDiv.textContent = 'Đang gửi lệnh...';
+      statusDiv.style.color = 'black';
+
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          // Cập nhật trạng thái và giao diện dựa trên phản hồi
+          isArmed = !isArmed;
+          
+          if (isArmed) {
+            armBtn.textContent = 'DISARM';
+            armBtn.classList.add('disarm');
+            statusDiv.textContent = 'ESP32 phản hồi: ' + data;
+            statusDiv.style.color = 'green';
+          } else {
+            armBtn.textContent = 'ARM';
+            armBtn.classList.remove('disarm');
+            statusDiv.textContent = 'ESP32 phản hồi: ' + data;
+            statusDiv.style.color = 'blue';
+          }
+        })
+        .catch(error => {
+          statusDiv.textContent = 'Lỗi kết nối tới ESP32: ' + error;
+          statusDiv.style.color = 'red';
+        });
+    });
+  </script>
+</body>
+</html>
